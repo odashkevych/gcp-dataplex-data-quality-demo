@@ -1,0 +1,76 @@
+# Rules can be shared across tables or columns.
+rules:
+
+  NO_REFERENTIAL_INTEGRITY_VIOLATION_IN_SALES:
+    rule_type: CUSTOM_SQL_EXPR
+    dimension: integrity
+    params:
+      custom_sql_arguments:
+        - ref_data_dataset
+        - ref_data_table_id
+      custom_sql_expr: sales/column_in_sellers_or_buyers_expr
+
+
+#rule bindings associate rules to {table, column}
+rule_bindings:
+  USER_VALID_USER_ID:
+    entity_uri: dataplex://entities/users
+    column_id: userid
+    row_filter_id: NONE
+    rule_ids:
+      - VALID_USER_ID
+  USER_NO_DUPLICATES_IN_COLUMN_GROUPS:
+    entity_uri: dataplex://entities/users
+    column_id: userid
+    row_filter_id: NONE
+    rule_ids:
+      - NO_DUPLICATES_IN_COLUMN_GROUPS:
+          column_names: "userid, username, email"
+
+  USER_EMAIL_CHECK:
+    entity_uri: dataplex://entities/users
+    column_id: email
+    row_filter_id: NONE
+    rule_ids:
+      - NO_INVALID_EMAIL
+    metadata:
+      business_case: one
+  USER_HAS_ANY_PREFERENCE_NOT_NULL:
+    entity_uri: dataplex://entities/users
+    column_id: likesports
+    row_filter_id: NONE
+    rule_ids:
+      - NO_ISSUES_WITH_COMPLETENESS:
+          condition: data.likesports IS NOT NULL OR data.liketheatre OR data.likeconcerts IS NOT NULL
+            OR data.likejazz IS NOT NULL OR data.likeclassical IS NOT NULL OR data.likeopera IS NOT NULL
+            OR data.likerock IS NOT NULL OR data.likevegas IS NOT NULL OR data.likebroadway IS NOT NULL
+            OR data.likemusicals IS NOT NULL
+          threshold_pct: 90
+  USER_HAS_NO_DELAYED_INGESTION_MONTH_LEVEL:
+    entity_uri: dataplex://entities/users
+    column_id: export_datetime
+    row_filter_id: NONE
+    rule_ids:
+      - NO_DELAYED_INGESTION_MONTH_LEVEL:
+          ingestion_date_month: export_datetime
+          elapsed_time_months: 1
+  USER_ID_HAS_REFERENTIAL_INTEGRITY_WITH_SALES:
+    entity_uri: dataplex://entities/users
+    column_id: userid
+    row_filter_id: NONE
+    rule_ids:
+      - NO_REFERENTIAL_INTEGRITY_VIOLATION_IN_SALES:
+          ref_data_dataset: market_sales
+          ref_data_table_id: sales
+  USER_STATE_IS_WITHIN_US:
+    entity_uri: dataplex://entities/users
+    column_id: state
+    row_filter_id: NONE
+    rule_ids:
+      - ACCURACY_CHECK_FOR_US_STATES
+  USER_PHONE_IS_CORRECT:
+    entity_uri: dataplex://entities/users
+    column_id: phone
+    row_filter_id: NONE
+    rule_ids:
+      - PHONE_NUM_IS_BTW_RANGE

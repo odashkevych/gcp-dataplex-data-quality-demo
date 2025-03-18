@@ -1,0 +1,47 @@
+rules:
+  NO_DUPLICATES_IN_COLUMN_GROUPS:
+    rule_type: CUSTOM_SQL_STATEMENT
+    dimension: uniqueness
+    params:
+      custom_sql_arguments:
+        - column_names
+      custom_sql_statement: no_duplicates_in_column_groups_stmnt
+
+  NOT_BLANK:
+    rule_type: NOT_BLANK
+    dimension: completeness
+
+  VALUE_ZERO_OR_POSITIVE:
+    rule_type: CUSTOM_SQL_EXPR
+    dimension: correctness
+    params:
+      custom_sql_expr: gte_zero_expr
+
+  NO_DELAYED_INGESTION_MONTH_LEVEL:
+    rule_type: CUSTOM_SQL_STATEMENT
+    dimension: timeliness
+    params:
+      custom_sql_arguments:
+        - ingestion_date_month
+        - elapsed_time_months
+      custom_sql_statement: delayed_ingestion_month_level_stmnt
+
+
+  NO_ISSUES_WITH_COMPLETENESS:
+    rule_type: CUSTOM_SQL_STATEMENT
+    dimension: completeness
+    params:
+      custom_sql_arguments:
+        - threshold_pct
+        - condition
+      custom_sql_statement: no_issues_with_completeness_stmnt
+
+  VALUE_IN_DISTINCT_RANGE:
+    rule_type: CUSTOM_SQL_EXPR
+    dimension: correctness
+    params:
+      custom_sql_expr: column_in_distinct_range_expr
+      custom_sql_arguments:
+        - ref_data_dataset
+        - ref_data_table_id
+        - ref_data_column_id

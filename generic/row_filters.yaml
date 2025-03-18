@@ -1,0 +1,6 @@
+row_filters:
+  NONE:
+    filter_sql_expr: |-
+      True
+  HAS_EXPORT_DATETIME:
+    filter_sql_expr: export_datetime IS NOT NULL

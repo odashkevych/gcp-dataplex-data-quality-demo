@@ -1,0 +1,26 @@
+rules:
+  ACCURACY_CHECK_FOR_US_STATES:
+    rule_type: CUSTOM_SQL_EXPR
+    dimension: accuracy
+    params:
+      custom_sql_expr: check_us_states_expr
+
+  PHONE_NUM_IS_BTW_RANGE:
+    rule_type: CUSTOM_SQL_EXPR
+    dimension: validity
+    params:
+      custom_sql_expr: phone_number_range_expr
+
+  VALID_USER_ID:
+    rule_type: REGEX
+    dimension: conformity
+    params:
+      pattern: |-
+        [0-9]+
+
+  NO_INVALID_EMAIL:
+    rule_type: REGEX
+    dimension: conformity
+    params:
+      pattern: |-
+        ^[\\w\\.-]+@([\\w-]+\\.)+[\\w-]{2,}$

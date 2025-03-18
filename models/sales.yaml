@@ -1,0 +1,71 @@
+reference_columns:
+  ORDER_DETAILS_REFERENCE_COLUMNS:
+    include_reference_columns:
+      - salesid
+      - saletime
+      - listid
+  PRICE_DETAILS_REFERENCE_COLUMNS:
+    include_reference_columns:
+      - commission
+      - qtysold
+      - pricepaid
+rules:
+  SELLER_COMMISSION_PER_DAY_IS_BETWEEN_5_10_PERCENT:
+    rule_type: CUSTOM_SQL_STATEMENT
+    dimension: correctness
+    params:
+      custom_sql_statement: sales/seller_commission_per_day_is_between_5_10_percent_stmnt
+rule_bindings:
+  #  generic rules
+  USER_NO_DUPLICATES_IN_COLUMN_GROUPS:
+    entity_uri: dataplex://entities/sales
+    column_id: salesid
+    row_filter_id: NONE
+    rule_ids:
+      - NO_DUPLICATES_IN_COLUMN_GROUPS:
+          column_names: "salesid"
+
+  SALES_HAS_NO_DELAYED_INGESTION_MONTH_LEVEL:
+    entity_uri: dataplex://entities/sales
+    column_id: export_datetime
+    row_filter_id: NONE
+    rule_ids:
+      - NO_DELAYED_INGESTION_MONTH_LEVEL:
+          ingestion_date_month: export_datetime
+          elapsed_time_months: 1
+
+  SALES_BUYER_HAS_REFERENTIAL_INTEGRITY_WITH_USERS:
+    entity_uri: dataplex://entities/sales
+    column_id: buyerid
+    row_filter_id: NONE
+    rule_ids:
+      - VALUE_IN_DISTINCT_RANGE:
+          ref_data_dataset: market_sales
+          ref_data_table_id: users
+          ref_data_column_id: userid
+
+  SALES_SELLER_HAS_REFERENTIAL_INTEGRITY_WITH_USERS:
+    entity_uri: dataplex://entities/sales
+    column_id: sellerid
+    row_filter_id: NONE
+    rule_ids:
+      - VALUE_IN_DISTINCT_RANGE:
+          ref_data_dataset: market_sales
+          ref_data_table_id: users
+          ref_data_column_id: userid
+  #  Custom
+  TRANSACTION_AMOUNT_VALID:
+    entity_uri: dataplex://entities/sales
+    column_id: pricepaid
+    row_filter_id: NONE
+    reference_columns_id: ORDER_DETAILS_REFERENCE_COLUMNS
+    rule_ids:
+      - VALUE_ZERO_OR_POSITIVE
+  TRANSACTIONS_COMMISSION_VALID:
+    entity_uri: dataplex://entities/sales
+    column_id: commission
+    row_filter_id: NONE
+    reference_columns_id: PRICE_DETAILS_REFERENCE_COLUMNS
+    rule_ids:
+      - VALUE_ZERO_OR_POSITIVE
+      - SELLER_COMMISSION_PER_DAY_IS_BETWEEN_5_10_PERCENT

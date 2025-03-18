@@ -1,0 +1,55 @@
+# This is a convenience section that allows you to shorten the entity_uri
+metadata_registry_defaults:
+  dataplex:
+    projects: bdag-data-quality-demo
+    locations: europe-west1
+    lakes: marketplace
+    zones: sales-eu-west1
+
+# You have to define a NONE row filter
+row_filters:
+  NONE:
+    filter_sql_expr: |-
+      True
+
+# rule dimensions are optional but allow you to aggregate reporting.
+rule_dimensions:
+  - timeliness
+  - correctness
+  - integrity
+  - conformity
+  - completeness
+  - uniqueness
+  - accuracy
+  - validity
+
+# Rules can be shared across tables or columns.
+rules:
+  # This rule is parameterized with column_names as parameter
+  NO_DUPLICATES_IN_COLUMN_GROUPS:
+    rule_type: CUSTOM_SQL_STATEMENT
+    dimension: uniqueness
+    params:
+      custom_sql_arguments:
+        - column_names
+      custom_sql_statement: |-
+        select a.*
+        from data a
+        inner join (
+          select
+            $column_names
+          from data
+          group by $column_names
+          having count(*) > 1
+        ) duplicates
+        using ($column_names)
+
+#rule bindings associate rules to {table, column}
+rule_bindings:
+  NO_DUPLICATES_IN_COLUMN_GROUPS:
+    entity_uri: dataplex://entities/event
+    column_id: eventid
+    row_filter_id: NONE
+    rule_ids:
+      - NO_DUPLICATES_IN_COLUMN_GROUPS:
+          column_names: "eventid"

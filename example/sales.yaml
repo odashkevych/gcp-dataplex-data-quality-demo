@@ -1,0 +1,98 @@
+# This is a convenience section that allows you to shorten the entity_uri
+metadata_registry_defaults:
+  dataplex:
+    projects: bdag-data-quality-demo
+    locations: europe-west1
+    lakes: marketplace
+    zones: sales-eu-west1
+
+
+# You have to define a NONE row filter
+row_filters:
+  NONE:
+    filter_sql_expr: |-
+      True
+
+# rule dimensions are optional but allow you to aggregate reporting.
+rule_dimensions:
+  - timeliness
+  - correctness
+  - integrity
+  - conformity
+  - completeness
+  - uniqueness
+  - accuracy
+  - validity
+
+reference_columns:
+  ORDER_DETAILS_REFERENCE_COLUMNS:
+    include_reference_columns:
+      - salesid
+      - saletime
+      - listid
+  PRICE_DETAILS_REFERENCE_COLUMNS:
+    include_reference_columns:
+      - commission
+      - qtysold
+      - pricepaid
+
+# Rules can be shared across tables or columns.
+rules:
+  # This rule is parameterized with column_names as parameter.
+  # If the SQL statement returns 0 rows, CloudDQ considers the rule a success.
+  # Can we store SQL somewhere externally?
+  SELLER_COMMISSION_PER_DAY_IS_BETWEEN_5_10_PERCENT:
+    rule_type: CUSTOM_SQL_STATEMENT
+    dimension: correctness
+    params:
+      custom_sql_statement: |-
+        select a.* from data a
+        INNER JOIN 
+          (SELECT
+            (SUM(s.commission) / SUM(s.pricepaid)) * 100 AS commission_percentage,
+            DATE(s.saletime) AS sale_date,
+            sellerid,
+          FROM
+            `redshift_us.sales` s
+          GROUP BY
+            s.sellerid,
+            DATE(s.saletime)) agg_data ON a.sellerid = agg_data.sellerid AND DATE(a.saletime) = agg_data.sale_date
+        WHERE not(commission_percentage BETWEEN 5 AND 10)
+  VALUE_ZERO_OR_POSITIVE:
+    rule_type: CUSTOM_SQL_EXPR
+    dimension: correctness
+    params:
+      custom_sql_expr: |-
+        $column >= 0
+  NO_DELAYED_INGESTION_MONTH_LEVEL:
+    rule_type: CUSTOM_SQL_STATEMENT
+    dimension: timeliness
+    params:
+      custom_sql_arguments:
+        - ingestion_date_month
+        - elapsed_time_months
+      custom_sql_statement: |-
+        select * from
+        (select count(*) as n
+          from data a
+          where FORMAT_TIMESTAMP('%Y%m', DATE_TRUNC($ingestion_date_month, MONTH)) >= date_sub(date_trunc(current_date(), month), interval $elapsed_time_months month) 
+        )
+        where n = 0
+
+#rule bindings associate rules to {table, column}
+rule_bindings:
+  TRANSACTIONS_COMMISSION_VALID:
+    entity_uri: dataplex://entities/sales
+    column_id: commission
+    row_filter_id: NONE
+    reference_columns_id: PRICE_DETAILS_REFERENCE_COLUMNS
+    rule_ids:
+      - SELLER_COMMISSION_PER_DAY_IS_BETWEEN_5_10_PERCENT
+  TRANSACTION_AMOUNT_VALID:
+    entity_uri: dataplex://entities/sales
+    column_id: pricepaid
+    row_filter_id: NONE
+    reference_columns_id: ORDER_DETAILS_REFERENCE_COLUMNS
+    rule_ids:
+      - VALUE_ZERO_OR_POSITIVE:
+          column: "pricepaid"

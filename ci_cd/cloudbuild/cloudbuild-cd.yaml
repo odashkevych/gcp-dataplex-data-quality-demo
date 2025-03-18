@@ -1,0 +1,43 @@
+steps:
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    env:
+      - "MODEL_NAME=${_MODEL_NAME}"
+      - "ENVIRONMENT=${_ENVIRONMENT}"
+      - "USER_CLOUDDQ_YAML_CONFIGS_GCS_PATH=${_USER_CLOUDDQ_YAML_CONFIGS_GCS_PATH}"
+      - "GOOGLE_CLOUD_PROJECT=${_GOOGLE_CLOUD_PROJECT}"
+      - "DATAPLEX_REGION_ID=${_DATAPLEX_REGION_ID}"
+      - "DATAPLEX_PUBLIC_GCS_BUCKET_NAME=${_DATAPLEX_PUBLIC_GCS_BUCKET_NAME}"
+      - "DATAPLEX_LAKE_ID=${_DATAPLEX_LAKE_ID}"
+      - "DATAPLEX_TASK_SERVICE_ACCOUNT=${_DATAPLEX_TASK_SERVICE_ACCOUNT}"
+      - "CLOUDDQ_BIGQUERY_DATASET=${_CLOUDDQ_BIGQUERY_DATASET}"
+      - "TARGET_BQ_DATASET=${_TARGET_BQ_DATASET}"
+      - "TARGET_BQ_TABLE=${_TARGET_BQ_TABLE}"
+      - "TASK_NAME=${_TASK_NAME}"
+    args:
+      - '-c'
+      - |
+          echo "Displaying environment variables:"
+          env
+          echo "Running shell script with MODEL_NAME: ${_MODEL_NAME} and ENVIRONMENT: ${_ENVIRONMENT}"
+          chmod +x ./ci_cd/cloudbuild/run_dq_task.sh
+          ./ci_cd/cloudbuild/run_dq_task.sh
+
+substitutions:
+  _USER_CLOUDDQ_YAML_CONFIGS_GCS_PATH: ""
+  _GOOGLE_CLOUD_PROJECT: ""
+  _DATAPLEX_REGION_ID: ""
+  _DATAPLEX_PUBLIC_GCS_BUCKET_NAME: ""
+  _DATAPLEX_LAKE_ID: ""
+  _DATAPLEX_TASK_SERVICE_ACCOUNT: ""
+  _CLOUDDQ_BIGQUERY_DATASET: ""
+  _TARGET_BQ_DATASET: ""
+  _TARGET_BQ_TABLE: ""
+  _TASK_NAME: ""
+  _MODEL_NAME: ""
+  _ENVIRONMENT: ""
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: '600s'

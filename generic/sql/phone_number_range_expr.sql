@@ -1,0 +1,1 @@
+CHAR_LENGTH($column) BETWEEN 10 AND 18

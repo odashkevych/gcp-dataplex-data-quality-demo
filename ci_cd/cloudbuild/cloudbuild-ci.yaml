@@ -1,0 +1,30 @@
+steps:
+  # Step 1: Run Python script to compile the rule.
+  - name: 'python:3.9-slim'
+    entrypoint: bash
+    args:
+      - "-c"
+      - |
+          echo "Installing Python dependencies..."
+          pip install -r requirements.txt
+          echo "Running compile_rule.py for model: models/${_MODEL_NAME}.yaml"
+          python compile_rule.py models/${_MODEL_NAME}.yaml compiled ${_ENVIRONMENT}
+
+  # Step 2: Copy the compiled file to the target Cloud Storage location.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: bash
+    args:
+      - "-c"
+      - |
+          echo "Copying compiled file from compiled/models${_MODEL_NAME}-${_ENVIRONMENT}.yaml to ${_USER_CLOUDDQ_YAML_CONFIGS_GCS_PATH}/${_ENVIRONMENT}/"
+          gsutil cp compiled/models/${_MODEL_NAME}-${_ENVIRONMENT}.yaml ${_USER_CLOUDDQ_YAML_CONFIGS_GCS_PATH}/${_ENVIRONMENT}/
+
+substitutions:
+  _USER_CLOUDDQ_YAML_CONFIGS_GCS_PATH: ""  # default value; can be overridden in the trigger
+  _MODEL_NAME: ""   # Replace with your default model name or override during trigger
+  _ENVIRONMENT: ""    # Replace with your default environment (e.g., dev, prod)
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: '600s'

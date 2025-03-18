@@ -1,0 +1,9 @@
+#rule bindings associate rules to {table, column}
+rule_bindings:
+  NO_EVENT_DUPLICATES_IN_COLUMN_GROUPS:
+    entity_uri: dataplex://entities/event
+    column_id: eventid
+    row_filter_id: NONE
+    rule_ids:
+      - NO_DUPLICATES_IN_COLUMN_GROUPS:
+          column_names: "eventid"

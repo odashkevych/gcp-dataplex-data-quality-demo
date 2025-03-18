@@ -1,0 +1,1 @@
+$column in (select distinct $ref_data_column_id from `$ref_data_dataset.$ref_data_table_id`)
