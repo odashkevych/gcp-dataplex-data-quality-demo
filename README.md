@@ -51,13 +51,8 @@ DQ dimensions https://www.datagaps.com/blog/what-are-data-quality-dimensions/
 
 Compile generic tests and deploy to DQ bucket.
 
-Events
+Events example
 ```shell
 python compile_rule.py models/event.yaml compiled dev
 ./copy_rules.sh compiled/models
-```
-
-Sales
-```shell
-
 ```
