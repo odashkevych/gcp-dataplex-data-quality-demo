@@ -4,7 +4,7 @@ set -e
 YAML_CONFIG_GCS_PATH="$USER_CLOUDDQ_YAML_CONFIGS_GCS_PATH/$ENVIRONMENT/$MODEL_NAME-$ENVIRONMENT.yaml"
 echo "Model filepath provided: $YAML_CONFIG_GCS_PATH"
 
-FULL_TASK_NAME="${TASK_NAME}-${MODEL_NAME}-${ENVIRONMENT}"
+FULL_TASK_NAME="${TASK_NAME}-${MODEL_NAME}-${ENVIRONMENT}-$(uuidgen)"
 echo "Creating Dataplex DQ task: ${FULL_TASK_NAME}"
 
 gcloud dataplex tasks create \
